@@ -1,7 +1,7 @@
-import Carousel from './Carousel'
-import Input from './Input'
+import Carousel from "./Carousel";
+import Input from "./Input";
+import Skeleton from "./Skeleton";
+import OfflineGame from './OfflineGame';
 
 export {
-    Input,
-    Carousel
-}
+  OfflineGame, Input, Carousel, Skeleton };
