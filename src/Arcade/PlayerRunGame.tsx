@@ -11,7 +11,7 @@ import SleepExpertDrop from "../svg/SleepExpertDrop";
 import SleepExpertJump from "../svg/SleepExpertJump";
 import TRex from "../svg/TRex";
 import clsx from "clsx";
-import styles from "./offlineGame.module.scss";
+import styles from "./arcade.module.scss";
 import { useGameContext } from "../contexts/GameContext";
 
 interface Props {
