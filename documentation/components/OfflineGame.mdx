@@ -16,7 +16,7 @@ import OfflineGame from "shcl/OfflineGame";
 
 ## Description
 
-TODO add description here
+The Offline Game component allows you to a display a game made for offline usage.
 
 ## Properties
 
@@ -25,7 +25,11 @@ TODO add description here
 ## Basic Usage
 
 <Playground>
-  <Component initialState={{}}>
-    {({ setState, state }) => <OfflineGame></OfflineGame>}
-  </Component>
+  <OfflineGame></OfflineGame>
+</Playground>
+
+## Different Modes
+
+<Playground>
+  <OfflineGame mode="sleep-expert" jumpKey="6"></OfflineGame>
 </Playground>
