@@ -2,14 +2,17 @@ import React, {
   FunctionComponent,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
+import Button from "../Button";
+import GameOver from "../Icons/GameOver";
 import Obstacle from "./Obstacle";
-import SleepExpert from "../svg/SleepExpert";
-import SleepExpertDrop from "../svg/SleepExpertDrop";
-import SleepExpertJump from "../svg/SleepExpertJump";
-import TRex from "../svg/TRex";
+import SleepExpert from "../Icons/SleepExpert";
+import SleepExpertDrop from "../Icons/SleepExpertDrop";
+import SleepExpertJump from "../Icons/SleepExpertJump";
+import TRex from "../Icons/TRex";
 import clsx from "clsx";
 import styles from "./arcade.module.scss";
 import { useGameContext } from "../contexts/GameContext";
@@ -32,50 +35,57 @@ const PlayerRunGame: FunctionComponent<Props> = ({
   const [drop, setDrop] = useState(false);
   const [startGame, setStartGame] = useState(false);
 
+  // TODO: Move to component <Character />
+  const characterMode = () => {
+    switch (mode) {
+      case "sleep-expert":
+        if (drop) return <SleepExpertDrop width="60px" height="60px" />;
+        if (jump) return <SleepExpertJump width="60px" height="60px" />;
+        return <SleepExpert width="60px" height="60px" />;
+      case "classic":
+      default:
+        return <TRex width="60px" height="60px" />;
+    }
+  };
+
   const keydownHandler = useCallback(
     (event: KeyboardEvent) => {
-      // TODO: Not working with dispatch game over <?>
-      if (gameOver) return;
-
       const { key } = event;
+
+      // TODO: Not working with dispatch game over <?>
+      if (gameOver) {
+        console.log(key);
+        if (key === "13" || key === "Enter") {
+          retryClickHandler();
+          return;
+        }
+      }
+
       if (!gameOver && !jump && key === jumpKey) {
-        console.log("set jump true");
+        // console.log("set jump true");
         setJump(true);
         setStartGame(true);
         // TODO: Not working with dispatch
         // dispatch({ type: "start-game" });
       }
     },
-    [state, gameOver, startGame, jump]
+    [state, gameOver, jump]
   );
 
-  const jumpHandler = (timerId: NodeJS.Timeout) => {
-    console.log("jump!");
-    let position = 0;
-    let count = 0;
-    const duration = 20;
-    timerId = setInterval(() => {
-      // move down
-      if (count === 15) {
-        setDrop(true);
-        return clearInterval(timerId);
-      }
+  const retryClickHandler = () => {
+    // TODO: Reset game stage
+    // TODO: Not working with dispatch reset <?>
+    dispatch({ type: "reset" });
+    dispatch({ type: "start-game" });
 
-      // move up
-      console.log("up");
-      count++;
-      position += 30;
-      position *= gravity;
-      console.log("player position:", position);
-      dispatch({ type: "player-position", playerPosition: position });
-    }, duration);
-
-    return () => clearInterval(timerId);
+    setStartGame(true);
+    setJump(false);
+    setDrop(false);
   };
 
   useEffect(() => {
     if (drop) {
-      console.log("down");
+      // console.log("down");
       let downTimerId!: NodeJS.Timeout;
       clearInterval(downTimerId);
 
@@ -83,6 +93,8 @@ const PlayerRunGame: FunctionComponent<Props> = ({
       let position = playerPosition;
       const duration = 20;
       downTimerId = setInterval(() => {
+        if (gameOver) return clearInterval(downTimerId);
+
         if (count === 0) {
           position += gravity;
           setJump(false);
@@ -97,36 +109,44 @@ const PlayerRunGame: FunctionComponent<Props> = ({
 
       return () => clearInterval(downTimerId);
     }
-  }, [drop]);
+  }, [drop, gameOver]);
 
   useEffect(() => {
     if (jump) {
       let timerId!: NodeJS.Timeout;
       clearInterval(timerId);
 
-      jumpHandler(timerId);
+      // console.log("jump!");
+      let position = 0;
+      let count = 0;
+      const duration = 20;
+      timerId = setInterval(() => {
+        if (gameOver) return clearInterval(timerId);
+
+        // move down
+        if (count === 15) {
+          setDrop(true);
+          return clearInterval(timerId);
+        }
+
+        // move up
+        // console.log("up");
+        count++;
+        position += 30;
+        position *= gravity;
+        dispatch({ type: "player-position", playerPosition: position });
+      }, duration);
+
       return () => clearInterval(timerId);
     }
-  }, [jump]);
+  }, [jump, gameOver]);
 
   useEffect(() => {
     window.addEventListener("keydown", keydownHandler);
     return () => {
       window.removeEventListener("keydown", keydownHandler);
     };
-  }, []);
-
-  const charcterMode = () => {
-    switch (mode) {
-      case "sleep-expert":
-        if (drop) return <SleepExpertDrop width="60px" height="60px" />;
-        if (jump) return <SleepExpertJump width="60px" height="60px" />;
-        return <SleepExpert width="60px" height="60px" />;
-      case "classic":
-      default:
-        return <TRex width="60px" height="60px" />;
-    }
-  };
+  }, [state, gameOver, jump]);
 
   return (
     <div
@@ -136,15 +156,29 @@ const PlayerRunGame: FunctionComponent<Props> = ({
         gameOver && styles["game-over"]
       )}
     >
+      {gameOver && (
+        <>
+          <div className={styles.gameOverBanner}>
+            <div className={styles.banner}>
+              <GameOver width="400px" height="60px" fillColor="#000000" />
+            </div>
+            <div className={styles["restart-game"]}>
+              <Button btnType="primary" onClick={retryClickHandler}>
+                Play Again
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
       <div
         className={clsx(styles.player, styles[""])}
         style={{
           bottom: `${playerPosition}px`,
         }}
       >
-        {charcterMode()}
+        {characterMode()}
       </div>
-      {startGame && <Obstacle />}
+      {startGame && <Obstacle mode={mode} />}
     </div>
   );
 };

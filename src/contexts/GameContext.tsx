@@ -23,11 +23,14 @@ const GameProvider: FunctionComponent = ({ children }) => {
   const reducer = (state: any, action: Props) => {
     switch (action.type) {
       case "reset":
+        // console.log("--- game reset ---");
         return initState;
       case "start-game":
+        // console.log("--- start game ---");
         return { ...state, startGame: true, gameOver: false };
       case "game-over":
-        return { ...state, gameOver: true };
+        // console.log("--- game over ---");
+        return { ...state, startGame: false, gameOver: true, gameReset: true };
       case "player-position":
       default:
         if (state.playerPosition !== action.playerPosition)
